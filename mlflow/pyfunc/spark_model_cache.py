@@ -33,7 +33,7 @@ class SparkModelCache(object):
         we will zip the directory up, enable it to be distributed to executors, and return
         the "archive_path", which should be used as the path in get_or_load().
         """
-        if databricks_utils.is_in_databricks_runtime:
+        if databricks_utils.is_in_databricks_runtime and spark.conf.get("spark.databricks.driverNfs.enabled") == 'true':
             venv_path = os.environ['VIRTUAL_ENV']
             archive_path = venv_path + '/_mlflow_models/' + os.path.basename(model_path)
             shutil.copytree(model_path, archive_path)
@@ -59,7 +59,7 @@ class SparkModelCache(object):
 
         temp_dir = None
         
-        if databricks_utils.is_in_databricks_runtime:
+        if databricks_utils.is_in_databricks_runtime and os.path.exists(archive_path):
             temp_dir = archive_path
         else:
             # BUG: Despite the documentation of SparkContext.addFile() and SparkFiles.get() in Scala
