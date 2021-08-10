@@ -34,8 +34,13 @@ class SparkModelCache(object):
         the "archive_path", which should be used as the path in get_or_load().
         """
         if databricks_utils.is_in_databricks_runtime and spark.conf.get("spark.databricks.driverNfs.enabled") == 'true':
-            venv_path = os.environ['VIRTUAL_ENV']
-            archive_path = venv_path + '/_mlflow_models/' + os.path.basename(model_path)
+            archive_path = os.path.join(os.environ['SPARK_LOCAL_DIRS'],
+                spark.conf.get('spark.databricks.driverNfs.pathSuffix'),
+                'envs',
+                os.environ["USER"],
+                '_mlflow_models',
+                os.path.basename(model_path))
+            
             shutil.copytree(model_path, archive_path)
 
             return archive_path
